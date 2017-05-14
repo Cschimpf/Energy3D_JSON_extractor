@@ -1,0 +1,29 @@
+{
+	"Built-in Styles":
+		{"Solar":
+			[
+				"Add SolarPanel",
+				"Remove SolarPanel",
+				"Edit SolarPanel",
+				"Paste SolarPanel",
+				"Rotate Solar Panel",
+				"Change Date",
+				"Change Time",
+				"DailyEnergyGraph",
+				"Change Solar Heat Map Color Contrast",
+				"SolarAnnualAnalysis",
+				"SolarDailyAnalysis",
+				"GroupAnnualAnalysis",
+				"GroupDailyAnalysis",
+				"Show Shadow",
+				"Show Heliodon",
+				"Animate Sun",
+				"Choose Size for Selected Solar Panel",
+				"Solar Cell Efficiency Change for Selected Solar Panel",
+				"Solar Cell Efficiency Change for All Solar Panels on Selected Foundation",
+				"Solar Cell Efficiency Change for All Solar Panels of Selected Building",
+				"Solar Cell Efficiency Change for All Solar Panels"
+			]
+
+		}
+}
