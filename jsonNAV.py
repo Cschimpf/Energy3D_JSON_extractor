@@ -50,7 +50,8 @@ class jsonNAV(object):
 
 	def findACTKEY(self, act_entry):
 		'''
-		how should this handle conditions where there are no other entries? Is that even possible?
+		I believe one activity entry is being sent here and
+		then the 
 		'''
 		for key, val in act_entry.items():
 			if key not in jsonNAV.rpt_keys:

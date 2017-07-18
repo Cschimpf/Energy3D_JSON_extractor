@@ -24,8 +24,10 @@ class Window(Frame):
         self.file_checkboxes = {}
         self.parent_file_clicked = []
         self.type_checkboxes = []
-        self.UndoStream = []
+        self.UndoStream = [] #placeholder until I get here
+
         self.model = extract_transform_model()
+        
        
         self.init_window()
 
@@ -341,6 +343,9 @@ class statusCanvas(Canvas):
             print("I am trying to do something")
             self.create_text(self.defaultx, self.defaulty, text=statusmsg, fill = "blue", anchor=NW)
             self.updateCoordinates(0, 15)
+
+
+
 
 
 

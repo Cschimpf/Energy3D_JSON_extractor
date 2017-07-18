@@ -40,7 +40,7 @@ class filter(object):
 		if s_file == True:
 			self._student_file_filter = {}
 
-	def filter_student_files(self):
+	def filter_student_files(self, use_filtered = False):
 		'''
 		This filters out students or student files.
 		This could proceed by deleting entries.
@@ -48,7 +48,10 @@ class filter(object):
 		with the unfiltered entries. Right now
 		for small numbers it simply deletes.
 		'''
-		new_student_records = deepcopy(self.model_ref.student_records) 
+		if use_fitered == False:
+			new_student_records = deepcopy(self.model_ref.student_records) 
+		else:
+			new_student_records = deepcopy(self.model_ref.filtered_model.student_records)
 		#new_student_records = studentFILES() #holdover for when rebuilding functionality is added
 		for key, val in self.model_ref.student_records.recordlist.items():
 			if key in self.student_file_filter.keys() and len(val.keys()) == len(self.student_file_filter[key]):
@@ -62,8 +65,11 @@ class filter(object):
 						del new_student_records.recordlist[key][subkey]
 		return new_student_records
 
-	def filter_student_file_types(self):
-		new_student_records = deepcopy(self.model_ref.student_records)
+	def filter_student_file_types(self, use_filtered = False):
+		if use_filtered == False:
+			new_student_records = deepcopy(self.model_ref.student_records)
+		else:
+			new_student_records = deepcopy(self.model_ref.filtered_model.student_records)
 		for key, val in new_student_records.recordlist.items():
 			for subkey, subval in val.items():
 				newtreelist = []

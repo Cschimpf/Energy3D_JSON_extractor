@@ -12,14 +12,8 @@ class extract_transform_model(object):
 	def __init__(self):
 		self.filter_ref = filter(self)
 		self.filtered_model = extract_transform_instance(self)
+		self.machine_state = state_machine()
 
-
-
-	def count_filters(self, filters):
-		total = 0
-		for key, val in filters.items():
-			total = total + len(val)
-		return total 
 
 	def update_model_instance(self, filters = {}):
 		self.model_instance = deepcopy(self)
@@ -94,6 +88,11 @@ class extract_transform_model(object):
 		self.filter_ref.filters_reset() #running a scan will reset the filters back to nothing 
 
 	def extract_types(self):
+		'''
+		This seems to run without
+		any reference to types available,
+		should it work this way?
+		'''
 		student_files = studentFILES()
 		for jsonpaths in self.user_filelist:
 			student_files.addStudent(jsonpaths[1])
@@ -115,6 +114,7 @@ class extract_transform_model(object):
 			filespresent.append([key, missing])
 		for entry in filespresent:
 			print(entry)
+		print(list(self.student_records.recordlist.keys()))
 		self.filtered_model.instance_scheduler()
         
 		#need to add something here in case
@@ -142,23 +142,28 @@ class extract_transform_instance(extract_transform_model):
 			return 
 		elif "_student_records" in model_attrs and len(filter_attrs) ==2:
 			print("student records and both filters")
-			self._student_records = self.parent.filter_ref.filter_student_file_types()
-			self._student_records = self.parent.filter_ref.filter_student_files()
-
-			self.CHECK_FILE_FILTER()
-			self.CHECK_TYPE_FILTER()
+			if not self.parent.machine_state.compare_applied_new_type(self.parent.filter_ref.type_filter):
+				self._student_records = self.parent.filter_ref.filter_student_file_types()
+				self.parent.machine_state.applied_type_filter = self.parent.filter_ref.type_filter
+				self.CHECK_TYPE_FILTER()
+			if not self.parent.machine_state.compare_applied_new_sfile(self.parent.filter_ref.student_file_filter): 
+				self._student_records = self.parent.filter_ref.filter_student_files()
+				self.parent.machine_state.applied_sfile_filter = self.parent.filter_ref.student_file_filter
+				self.CHECK_FILE_FILTER()
 
 		elif "_student_records" in model_attrs and "_type_filter" in filter_attrs:
 			print("student records and type filter")
-			self._student_records = self.parent.filter_ref.filter_student_file_types()
-
-			self.CHECK_TYPE_FILTER()
+			if not self.parent.machine_state.compare_applied_new_type(self.parent.filter_ref.type_filter):
+				self._student_records = self.parent.filter_ref.filter_student_file_types()
+				self.parent.machine_state.applied_type_filter = self.parent.filter_ref.type_filter
+				self.CHECK_TYPE_FILTER()
 
 		elif "_student_records" in model_attrs and "_student_file_filter" in filter_attrs:
 			print("student_records and student file filter")
-			self._student_records = self.parent.filter_ref.filter_student_files()
-
-			self.CHECK_FILE_FILTER()
+			if not self.parent.machine_state.compare_applied_new_sfile(self.parent.filter_ref.student_file_filter): 
+				self._student_records = self.parent.filter_ref.filter_student_files()
+				self.parent.machine_state.applied_sfile_filter = self.parent.filter_ref.student_file_filter
+				self.CHECK_FILE_FILTER()
 			
 
 
@@ -187,14 +192,54 @@ class extract_transform_instance(extract_transform_model):
 	def identify_attrs(self):
 		model_attrs = []
 		filter_attrs = []
+		zero_state = []
 		for attr, value in self.parent.__dict__.items():
 			if attr == "_student_records":
 				model_attrs.append(attr)
 				break 
 		for attr, value in self.parent.filter_ref.__dict__.items():
-			if attr[0]== "_" and value != None and len(value) != 0 :
+			if attr[0]== "_" and len(value) != 0 or attr[0] == "_" and self.parent.machine_state.check_if_filtered():
 				filter_attrs.append(attr)
 		return model_attrs, filter_attrs
+
+class state_machine:
+	def __init__(self):
+		self.applied_type_filter = []
+		self.applied_sfile_filter = {}
+
+	def check_if_filtered(self, sfile = False, typef = False):
+		if sfile:
+			return len(self.applied_sfile_filter) 
+		if typef:
+			return len(self.applied_type_filter)
+
+	def compare_applied_new_type(self, new_type):
+		if len(self.applied_type_filter) != len(new_type):
+			return False #they are not the same, can't be with different size
+		for entry in new_type:
+			if entry not in self.applied_type_filter:
+				return False 
+		return True 
+
+	def compare_applied_new_sfile(self, sfile):
+		if len(self.applied_sfile_filter.keys()) != len(sfile.keys()):
+			return False
+		for key, val in sfile.items():
+			if len(val) != len(self.applied_sfile_filter[key]):
+				return False 
+		for key, val in sfile.items():
+			if key not in self.applied_sfile_filter.keys():
+				return False
+			for entry in val:
+				if entry not in self.applied_sfile_filter[key]:
+					return False
+		return True 
+
+
+
+
+
+
 
 class NoFile(Exception):
 	pass
@@ -219,3 +264,9 @@ class WrongType(Exception):
 
 	# for items in present_attrs:
 		# 	self.eval(items[1]) = eval('parent_obj'+eval(items[1]))
+
+	#def count_filters(self, filters):
+	# 	total = 0
+	# 	for key, val in filters.items():
+	# 		total = total + len(val)
+	# 	return total 
