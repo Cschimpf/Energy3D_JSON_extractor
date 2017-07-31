@@ -5,6 +5,7 @@ from StudentFiles import studentFILES
 from TreeProc import treePROC, dataVER, activityFilter
 from actNAV import * 
 from Filter import filter
+from Data_Formatter import * #this name likely needs to change maybe to data exporter 
 from copy import deepcopy
 import time 
 
@@ -120,6 +121,17 @@ class extract_transform_model(object):
 		#need to add something here in case
 		#type_filter has been set so its post processed and inserted into the model instance below
 
+	def export_data(self, writedir):
+		'''
+		At some point this will need to be generalized
+		for all sorts of exporting but for now
+		it only links to the rawcount exporter
+		'''
+		#in the future this should call some general function for handling different
+		#kinds of exports 
+		data_formatter = data_formatter_rawcount(self.student_records, self.types_available)
+		data_formatter.writedir = writedir 
+		data_formatter.export_dataframe()
 
 
 class extract_transform_instance(extract_transform_model):

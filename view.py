@@ -49,7 +49,7 @@ class Window(Frame):
 
         # create the file object)
         file = Menu(menu)
-        file.add_command(label="File Open", command=self.openFile)
+        file.add_command(label="File Open", command=self.openFile) #right now this doesn't do anything basically, it just opens something but isn't connected to anything else 
         file.add_command(label="Open Dir...", accelerator = 'Ctrl + D', command=self.openDir)
         file.add_command(label="Exit", command=self.client_exit)
         menu.add_cascade(label="File", menu=file)
@@ -64,6 +64,15 @@ class Window(Frame):
         importjson.add_command(label="Scan...", command=self.run_scan_for_types)
         importjson.add_command(label="Extract", command=self.run_extract_types)
         menu.add_cascade(label="Import JSON", menu=importjson)  
+
+        exportdata = Menu(menu)
+        exportoptions = Menu(menu)
+        exportoptions.add_command(label="Action Count", command=self.run_export_data)
+        menu.add_cascade(label="Export Data", menu=exportdata)
+        exportdata.add_cascade(label="Export", menu=exportoptions)
+
+        
+        #exportoptions.add_command()
 
         filtermenu = Menu(menu)
         filtermenu.add_command(label="Reset Filters", command=self.run_reset_filters) #need to fill this out
@@ -125,12 +134,20 @@ class Window(Frame):
             msgbox.showwarning("No JSON loaded", "WARNING! No JSON files loaded!")
 
     def run_extract_types(self):
-        #try:
-        self.model.extract_types()
+        try:
+            self.model.extract_types()
 
-        #except:
-            #msgbox.showwarning("Not Scanned", "WARNING!, JSON files have not been scanned")
+        except:
+            msgbox.showwarning("Not Scanned for Types", "WARNING! JSON files have not been scanned for types!")
         
+
+    def run_export_data(self):
+        '''
+        ###NEEDS EXCEPTION HANDLING###
+        '''
+
+        self.model.export_data(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
+
     def generate_info_box(self, header="", body=""):
         msgbox.showinfo(header, body)
 
@@ -309,6 +326,8 @@ class Window(Frame):
             if box.state.get()[0] == "-":
                 tofilter.append(box.state.get()[1:])
         return tofilter
+
+
 
     def ok(self):
         print(self.user_extract_selections.get(1.0, END))
