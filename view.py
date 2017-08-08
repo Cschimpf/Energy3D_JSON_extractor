@@ -68,6 +68,7 @@ class Window(Frame):
         exportdata = Menu(menu)
         exportoptions = Menu(menu)
         exportoptions.add_command(label="Action Count", command=self.run_export_data)
+        exportoptions.add_command(label='Action Density', command=self.run_export_action_desnity)
         menu.add_cascade(label="Export Data", menu=exportdata)
         exportdata.add_cascade(label="Export", menu=exportoptions)
 
@@ -147,6 +148,14 @@ class Window(Frame):
         '''
 
         self.model.export_data(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
+
+    def run_export_action_desnity(self):
+        '''
+        temporary method to get this up and running
+        Should be some way to handle all these calls
+        without separate methods
+        '''
+        self.model.export_action_density(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
 
     def generate_info_box(self, header="", body=""):
         msgbox.showinfo(header, body)

@@ -39,10 +39,10 @@ class jsonNAV(object):
 		anav, aorchard = actNAV(), actORCHARD()
 		for entry in self.pullLOG():
 			actkey, actval = self.findACTKEY(entry)
-			if extract == False:
+			if extract == False and actkey != "":
 				aorchard.planTREE(anav.actSC4NNR(actkey, actval)) #make a temp change here
 				#aorchard.planTYPE(anav.actSC4NNR(actkey, actval), fkey, fval)
-			else:
+			elif actkey != "":
 				temp_orch = anav.actSC4NNR(actkey, actval)
 				aorchard.planTREE(self.setDATETIME(entry, temp_orch), extract)
 			
@@ -53,9 +53,18 @@ class jsonNAV(object):
 		I believe one activity entry is being sent here and
 		then the 
 		'''
+		if self.checkFORKEY(act_entry):
+			for key, val in act_entry.items():
+				if key not in jsonNAV.rpt_keys:
+					return key, val 
+		else:
+			return "", {}
+
+	def checkFORKEY(self, act_entry):
 		for key, val in act_entry.items():
 			if key not in jsonNAV.rpt_keys:
-				return key, val 
+				return True
+		return False 
 
 	def pullLOG(self):
 		try:
@@ -66,6 +75,12 @@ class jsonNAV(object):
 			raise NoJSONFile("There is no JSON file set on the JSON Navigator") #you may want to update this to useful text for a user in the future, like a warning to set the jsonfile first
 
 	def setDATETIME(self, act_entry, tree_obj):
+		'''
+		This attaches a datetime from
+		timestap to each tree. It is in
+		use for the current version of the 
+		extractor
+		'''
 		tree_obj.datetime = act_entry['Timestamp']
 		return tree_obj
 

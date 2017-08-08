@@ -133,6 +133,17 @@ class extract_transform_model(object):
 		data_formatter.writedir = writedir 
 		data_formatter.export_dataframe()
 
+	def export_action_density(self, writedir):
+		'''
+		Unsustainable to make separate methods for all of these
+		just a temporary solution. This will export action
+		density for csv through the data_formatter. This is
+		more like variable creation?? Should it be 
+		stored or handled separately from export data?
+		'''
+		data_formatter = data_formatter_action_density(self.student_records, self.types_available)
+		data_formatter.writedir = writedir
+		data_formatter.export_dataframe()
 
 class extract_transform_instance(extract_transform_model):
 	'''a sublcass of the extract_transform_model
