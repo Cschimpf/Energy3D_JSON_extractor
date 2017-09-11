@@ -133,6 +133,13 @@ class extract_transform_model(object):
 		data_formatter.writedir = writedir 
 		data_formatter.export_dataframe()
 
+
+	def export_sequence_count(self, writedir):
+		data_formatter = data_formatter_sequence_count(self.student_records, self.types_available, 1)
+		data_formatter.writedir = writedir
+		data_formatter.export_dataframe()
+
+
 	def export_action_density(self, writedir):
 		'''
 		Unsustainable to make separate methods for all of these
