@@ -124,7 +124,7 @@ class data_formatter(object):
 		#if self.dataframe == None:
 			#return #the only time this should be a problem is if my code is wrong, should there be an error here?
 		self.dataframe.set_value(xrow, ycol, val)
-		print(self.dataframe)
+		
 
 	def retrieve_col_list(self):
 		return list(self.std_files.recordlist.keys())
@@ -434,19 +434,18 @@ class var_formatter_action_density(data_formatter):
 						#And should there be a check as to when the previous time point and the new one is greater
 						#than 30 minutes of inactivity>??
 			if action_count > 0 and time_count > 0:
-				action_density = action_count/time_count #divided by some time measure
-
+				action_density = (action_count/time_count)*100 #divided by some time measure
+				print(action_count/time_count)
 			self.insert_df_value(key, 'Action Density', round(action_density, 4))
 
 
 	def print_dataframe(self):
 		csvfile = csvFILE()
 		csvfile.fulldir = self.writedir 
-		csvfile.csvWRTR(['Student', 'Action Density', 'blank']) #will need to think about how to abstract this when its just one variable
+		csvfile.csvWRTR(['Student', 'Action Density']) #will need to think about how to abstract this when its just one variable
 		for xrow in self.students_avail:               # is this even the right venue for this or should variable creation be elsewhere?
 			dvector_row = list(self.dataframe.loc[xrow])
 			dvector_row.insert(0, xrow)
-			dvector_row.insert(2, 'blank')
 			csvfile.csvWRTR(dvector_row)
 
 
