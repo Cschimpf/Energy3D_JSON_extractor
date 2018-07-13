@@ -1,0 +1,19 @@
+{
+	"Action Count": {
+		"Type": "Dataframe",
+		"Filtering": true
+	},
+	"Sequence Count": {
+		"Type": "Dataframe",
+		"Filtering": true,
+		"Order": "Integer"
+	},
+	"Action Basket": {
+		"Type": "Dataframe",
+		"Filtering": true
+	},
+	"Action Density": {
+		"Type": "Variable",
+		"Filtering": false
+	}
+}

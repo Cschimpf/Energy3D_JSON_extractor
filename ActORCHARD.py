@@ -31,7 +31,7 @@ class actORCHARD:
 
 
 class actTREE:
-	def __init__(self, cargo, branch1=None, branch2=None, branch3=None, branch4=None, branch5=None, branch6=None, branch7=None, branch8=None, branch9=None, datetime=None):
+	def __init__(self, cargo, branch1=None, branch2=None, branch3=None, branch4=None, branch5=None, branch6=None, branch7=None, branch8=None, branch9=None, datetime=None, ng3file=None):
 		self.cargo = cargo
 		self.branch1  = branch1
 		self.branch2  = branch2
@@ -43,6 +43,7 @@ class actTREE:
 		self.branch8  = branch8
 		self.branch9  = branch9
 		self.datetime = datetime #at least for now this will circumvent having to make a new datatype just for extraction 
+		self.ng3file = ng3file #for now this allows us to capture the ng3 file being operated on too
         
 
 	def __str__(self):

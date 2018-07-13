@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import filedialog
 import tkinter.messagebox as msgbox
+import json 
+import os
+import sys
 from jsonHNDLR import jsonHNDLR
 from jsonNAV import jsonNAV, NoJSONFile
 from actNAV import * 
@@ -67,9 +70,12 @@ class Window(Frame):
 
         exportdata = Menu(menu)
         exportoptions = Menu(menu)
-        exportoptions.add_command(label="Action Count", command=self.run_export_data)
-        exportoptions.add_command(label="Sequence Count", command=self.run_export_sequence_count)
-        exportoptions.add_command(label='Action Density', command=self.run_export_action_density)
+        exportoptions.add_command(label="Action Count", command= lambda: self.run_analysis_window("Action Count", self.model))
+        exportoptions.add_command(label="Sequence Count", command=lambda: self.run_analysis_window("Sequence Count", self.model))
+        exportoptions.add_command(label="Action Basket", command= lambda: self.run_analysis_window("Action Basket", self.model))
+        exportoptions.add_command(label="Action Density", command= lambda: self.run_analysis_window("Action Density", self.model))
+        exportoptions.add_command(label="Action Stream", command=self.run_export_action_stream)
+        exportoptions.add_command(label="Attribute Extension", command=self.run_export_attribute_extension)
         menu.add_cascade(label="Export Data", menu=exportdata)
         exportdata.add_cascade(label="Export", menu=exportoptions)
 
@@ -142,26 +148,21 @@ class Window(Frame):
         except:
             msgbox.showwarning("Not Scanned for Types", "WARNING! JSON files have not been scanned for types!")
         
+            ###modify this
+    def run_analysis_window(self, analysis_type, model):
+        #maybe add a try except here like the run scan and run extract above? 
+        temp_window = Analysis_Window(analysis_type, model)
+        
 
-    def run_export_data(self):
-        '''
-        ###NEEDS EXCEPTION HANDLING###
-        '''
+    def run_export_action_stream(self):
 
-        self.model.export_data(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
-
-    def run_export_sequence_count(self):
-
-        self.model.export_sequence_count(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
+        self.model.export_action_stream(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
 
 
-    def run_export_action_density(self):
-        '''
-        temporary method to get this up and running
-        Should be some way to handle all these calls
-        without separate methods
-        '''
-        self.model.export_action_density(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
+
+    def run_export_attribute_extension(self):
+        self.model.export_attribute_extension(filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*"))))
+
 
     def generate_info_box(self, header="", body=""):
         msgbox.showinfo(header, body)
@@ -380,10 +381,6 @@ class statusCanvas(Canvas):
 
 
 
-
-
-
-
 class ResizingCanvas(Canvas):
     def __init__(self,parent, **kwargs):
         #print(kwargs)
@@ -414,6 +411,52 @@ class ResizingCanvas(Canvas):
         # rescale all the objects tagged with the "all" tag
         #self.Lside_canvas.scale("all",0,0,wscale,hscale)
 
+class Analysis_Window:
+    def __init__(self, analysis_type, model):
+        self.analysis_window = Toplevel(app)
+        self.analysis_type = analysis_type
+        self.filter_path = None
+        self.complete = False 
+
+        fileDir = os.path.dirname(os.path.abspath(__file__)) 
+        full_scheme = json.load(open(fileDir +  "\\analysis_window_schemes.json"))
+        self.analysis_scheme = full_scheme[analysis_type]
+        self.model = model
+        self.analysis_window.geometry('150x200')
+        self.analysis_window.resizable(0,0)
+        self.analysis_window.title(analysis_type)
+        Label(self.analysis_window, text='Setup Analysis').pack()
+
+        if len(self.analysis_scheme) > 2:
+            ''' do some additional
+            operations to add buttons or boxes
+            for how this is managed'''
+            pass
+
+        if self.analysis_scheme['Filtering'] == True:
+            button = Button(self.analysis_window, text="Upload Action Schema",padx=2, pady=2, command=self.openFilterFile).pack(side=TOP, anchor=N)
+        run_button = Button(self.analysis_window, text="Run Analysis", padx=2, pady=2, command=self.closeWindow).pack(side=BOTTOM, anchor=S)
+        self.analysis_window.transient(app)
+
+    def openFilterFile(self):
+        openedfile =  filedialog.askopenfilename(initialdir = "/",title = "Select JSON File",filetypes = (("json files","*.json"),("all files","*.*")))
+        
+        try:
+            jsonfile = json.load(open(openedfile))
+            self.filter_path = openedfile
+        except ValueError as e:
+            print(e)
+            msgbox.showwarning("Wrong File Type", "WARNING! Uploaded file not recognizable JSON file!")
+            
+
+    def closeWindow(self):
+        '''
+        '''
+        writedir = filedialog.asksaveasfilename(initialdir = "/",title = "Select file", filetypes = (("csv files","*.csv"),("all files","*.*")))
+
+        self.model.export_selector(self.analysis_type, writedir, self.filter_path)
+        self.analysis_window.destroy()
+
 # root window created. Here, that would be the only window, but
 # you can later have windows within windows.
 def main():
@@ -428,6 +471,7 @@ def main():
     root.rowconfigure(1, weight=1, minsize = 200)
     #creation of an instance
     #pdb.set_trace()
+    global app 
     app = Window(root)
 
     root.mainloop()

@@ -13,6 +13,8 @@ class extract_transform_model(object):
 	def __init__(self):
 		self.filter_ref = filter(self)
 		self.filtered_model = extract_transform_instance(self)
+		self.analysis_calls = {'Sequence Count' : self.export_sequence_count, 'Action Count' :  self.export_action_count, 
+							 'Action Basket' : self.export_action_basket, 'Action Density' : self.export_action_density}
 		self.machine_state = state_machine()
 
 
@@ -81,11 +83,12 @@ class extract_transform_model(object):
 			orchard = actORCHARD()
 			jnav, jnav.jsonfile = jsonNAV(), self.json_handler.openJSON(jsonpaths[0], jsonpaths[1]) #for now I am not looping through anything, just checking integration of all the modules  
 			if jnav.jsonfile:
-				orchard = jnav.jsonSC4NNR()
+				orchard = jnav.jsonSC4NNR(["Event String", "Camera", "Zoom", "Spin View", "Top View"]) #this needs to be here otherwise when printing out Camera will be included in the dataframe even though the actions are not counted, distorting the place of all other actions, temporarily Event String not Camera
 				for entry in orchard.actTREES:
 					if entry.cargo not in types_available: 
 						types_available.append(entry.cargo)
 		self.types_available = types_available 
+		
 		self.filter_ref.filters_reset() #running a scan will reset the filters back to nothing 
 
 	def extract_types(self):
@@ -99,7 +102,7 @@ class extract_transform_model(object):
 			student_files.addStudent(jsonpaths[1])
 			jnav, jnav.jsonfile = jsonNAV(), self.json_handler.openJSON(jsonpaths[0], jsonpaths[1])
 			if jnav.jsonfile:
-				orchard = jnav.jsonSC4NNR(True)
+				orchard = jnav.jsonSC4NNR(['Event String', 'Camera', 'Zoom', 'Spin View', 'Top View'], True) #note the temporary inclusion of CAMERA to remove this before, temporary fix to remove Event String as it is not useful for my analysis and causes errors 
 			else:
 				orchard = None
 			student_files.addRecord(jsonpaths[1], jsonpaths[0], orchard)
@@ -121,26 +124,32 @@ class extract_transform_model(object):
 		#need to add something here in case
 		#type_filter has been set so its post processed and inserted into the model instance below
 
-	def export_data(self, writedir):
-		'''
-		At some point this will need to be generalized
-		for all sorts of exporting but for now
-		it only links to the rawcount exporter
-		'''
-		#in the future this should call some general function for handling different
-		#kinds of exports 
-		data_formatter = data_formatter_rawcount(self.student_records, self.types_available)
+	def export_selector(self, analysis_type, writedir, filter_file = None):	
+		self.analysis_calls[analysis_type](writedir, filter_file)
+
+	def export_action_count(self, writedir, filter_file = None):	
+		data_formatter = data_formatter_rawcount(self.student_records, self.types_available, filter_file)
 		data_formatter.writedir = writedir 
 		data_formatter.export_dataframe()
 
 
-	def export_sequence_count(self, writedir):
-		data_formatter = data_formatter_sequence_count(self.student_records, self.types_available, 1)
+	def export_sequence_count(self, writedir, filter_file = None):
+		data_formatter = data_formatter_sequence_count(self.student_records, self.types_available, filter_file) 
+		data_formatter.writedir = writedir
+		data_formatter.export_dataframe()
+
+	def export_action_basket(self, writedir, filter_file = None):
+		data_formatter = None
+		#data_formatter.writedir = writedir
+		#data_formatter.export_dataframe()
+
+	def export_action_stream(self, writedir):
+		data_formatter = data_formatter_action_stream(self.student_records, self.types_available, True)
 		data_formatter.writedir = writedir
 		data_formatter.export_dataframe()
 
 
-	def export_action_density(self, writedir):
+	def export_action_density(self, writedir, filter_file = None):
 		'''
 		Unsustainable to make separate methods for all of these
 		just a temporary solution. This will export action
@@ -148,9 +157,18 @@ class extract_transform_model(object):
 		more like variable creation?? Should it be 
 		stored or handled separately from export data?
 		'''
-		data_formatter = data_formatter_action_density(self.student_records, self.types_available)
+		data_formatter = var_formatter_action_density(self.student_records, self.types_available)
 		data_formatter.writedir = writedir
 		data_formatter.export_dataframe()
+
+	def export_attribute_extension(self, writedir):
+		'''
+		#####UNDER CONSTRUCTION#####
+		'''
+		data_formatter = var_formatter_attribute_extension(self.student_records, self.types_available, "Graph Tab")
+		data_formatter.writedir = writedir
+		data_formatter.export_dataframe()
+
 
 class extract_transform_instance(extract_transform_model):
 	'''a sublcass of the extract_transform_model

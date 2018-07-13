@@ -34,35 +34,35 @@ class jsonNAV(object):
 		except:
 			raise ValueError("Assigned JSON file does not appear to be in E3D format")
 
-
-	def jsonSC4NNR(self, extract = False): #should there be a mode here for extracting full entries and appending date, time and file name?
+	#NOTE THE TEMPORARY ADDITION OF REMOVE_LIST = [] THIS WAS DONE FOR REMOVING CAMERA ACTIONS FOR ANALYSIS OF MARKOV CHAINS
+	def jsonSC4NNR(self, remove_list = [], extract = False): #should there be a mode here for extracting full entries and appending date, time and file name?
 		anav, aorchard = actNAV(), actORCHARD()
 		for entry in self.pullLOG():
-			actkey, actval = self.findACTKEY(entry)
+			actkey, actval = self.findACTKEY(entry, remove_list)
 			if extract == False and actkey != "":
 				aorchard.planTREE(anav.actSC4NNR(actkey, actval)) #make a temp change here
 				#aorchard.planTYPE(anav.actSC4NNR(actkey, actval), fkey, fval)
 			elif actkey != "":
 				temp_orch = anav.actSC4NNR(actkey, actval)
-				aorchard.planTREE(self.setDATETIME(entry, temp_orch), extract)
+				aorchard.planTREE(self.setMetaData(entry, temp_orch), extract)
 			
 		return aorchard
 
-	def findACTKEY(self, act_entry):
+	def findACTKEY(self, act_entry, remove_list = []):
 		'''
-		I believe one activity entry is being sent here and
-		then the 
+		Note the temporary inclusion of remove_list
+		to forward filter out actions
 		'''
-		if self.checkFORKEY(act_entry):
+		if self.checkFORKEY(act_entry, remove_list):
 			for key, val in act_entry.items():
-				if key not in jsonNAV.rpt_keys:
+				if key not in jsonNAV.rpt_keys: #and key not in remove_list:
 					return key, val 
 		else:
 			return "", {}
 
-	def checkFORKEY(self, act_entry):
+	def checkFORKEY(self, act_entry, remove_list = []):
 		for key, val in act_entry.items():
-			if key not in jsonNAV.rpt_keys:
+			if key not in jsonNAV.rpt_keys and key not in remove_list:
 				return True
 		return False 
 
@@ -74,14 +74,16 @@ class jsonNAV(object):
 		except:
 			raise NoJSONFile("There is no JSON file set on the JSON Navigator") #you may want to update this to useful text for a user in the future, like a warning to set the jsonfile first
 
-	def setDATETIME(self, act_entry, tree_obj):
+	def setMetaData(self, act_entry, tree_obj):
 		'''
-		This attaches a datetime from
-		timestap to each tree. It is in
+		This attaches a datetime and filename from
+		timestap and file to each tree. It is in
 		use for the current version of the 
-		extractor
+		extractor. May need to be generalized or allowed to fail 
+		for some earlier versions of E3D. Not sure file is always consistent name
 		'''
 		tree_obj.datetime = act_entry['Timestamp']
+		tree_obj.ng3file = act_entry['File']
 		return tree_obj
 
 	def	jsonEXTR4CTR(self):

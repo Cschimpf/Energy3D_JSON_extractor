@@ -51,7 +51,7 @@ class actNAV:
 		'''
 		branch_pos = []
 		for attr, value in rootobj.__dict__.items():
-			if value == None and attr != 'datetime':
+			if value == None and attr not in ['datetime', 'ng3file']: #added to list since the are two attributes that should not be randomly selected here
 				branch_pos.append(attr)
 				break
 		for attr in branch_pos:
