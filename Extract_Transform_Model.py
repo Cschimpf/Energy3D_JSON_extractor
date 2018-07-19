@@ -139,9 +139,9 @@ class extract_transform_model(object):
 		data_formatter.export_dataframe()
 
 	def export_action_basket(self, writedir, filter_file = None):
-		data_formatter = None
-		#data_formatter.writedir = writedir
-		#data_formatter.export_dataframe()
+		data_formatter = data_formatter_action_basket(self.student_records, self.types_available, filter_file)
+		data_formatter.writedir = writedir
+		data_formatter.export_dataframe()
 
 	def export_action_stream(self, writedir):
 		data_formatter = data_formatter_action_stream(self.student_records, self.types_available, True)

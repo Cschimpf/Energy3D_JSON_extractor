@@ -48,12 +48,12 @@ class data_formatter(object):
 	def sort_datalist(self, datalist):
 		return sorted(datalist)
 
-	def set_dataframes(self, data_index, col_list):
-		self.dataframe = self.create_dataframe(data_index, col_list)
-		self.dataframe_filtered = deepcopy(self.dataframe)
+	def set_dataframes(self, data_index, col_list, datatype = 'int'):
+		self.dataframe = self.create_dataframe(data_index, col_list, datatype)
+		self.dataframe_filtered = deepcopy(self.dataframe) #you may be able to remove this???
 
-	def create_dataframe(self, data_index, col_list):
-		return pd.DataFrame(0, index = data_index, columns = col_list)
+	def create_dataframe(self, data_index, col_list, datatype = 'int'):
+		return pd.DataFrame(index = data_index, columns = col_list, dtype=datatype)
 
 	def reset_filtered_dataframe(self):
 		if self.dataframe == None:
@@ -309,7 +309,44 @@ class data_formatter_sequence_count(data_formatter):
 				startdex = i
 
 
+class data_formatter_action_basket(data_formatter):
+	def __init__(self, std_files, types_avail, filtered = False):
+		super().__init__(std_files, types_avail, filtered)
+		self.joinstring =", "
+		self.datatype = 'object'
 
+	def export_dataframe(self):
+		self.populate_dataframe()
+		self.print_dataframe()
+
+	def populate_dataframe(self):
+		self.students_avail, self.types_avail = self.sort_datalist(self.retrieve_col_list()), self.sort_datalist(self.types_avail) #you could make these decorators and heve them self sort upon being set
+		self.set_dataframes(self.students_avail, ['Action Basket'], self.datatype) #the only column is Action Basket
+		for key, val in self.std_files.recordlist.items():
+			action_basket = []
+			for subkey, subval in val.items():
+				if subval[0] != None:
+					for tree in subval[0].actTREES:
+						if tree.cargo not in action_basket:
+							action_basket.append(tree.cargo)
+			if self.types_filter:
+				pass#do something to filter action_basket into new categories, no need to operate on dataframe as there is only one column
+			merged_basket = self.mergeBasketItems(self.joinstring, action_basket)
+			self.insert_df_value(key, 'Action Basket', merged_basket)
+		
+	def print_dataframe(self):
+		csvfile = csvFILE()
+		csvfile.fulldir = self.writedir 
+		labelrow = ['Student', 'Action Basket']
+		csvfile.csvWRTR(labelrow)
+		for xrow in self.students_avail:
+			dvector_row = list(self.dataframe.loc[xrow])
+			dvector_row.insert(0, xrow)
+			csvfile.csvWRTR(dvector_row)
+
+
+	def mergeBasketItems(self, joinstring, basket):
+		return joinstring.join(basket)
 
 class data_formatter_action_stream(data_formatter):
 	def __init__(self, std_files, types_avail, filtered = False):
