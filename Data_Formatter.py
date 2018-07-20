@@ -94,6 +94,24 @@ class data_formatter(object):
 			
 			self.dataframe.loc[key] = merged_values
 
+	def collapse_action_types(self, type_list):
+		for key, val in self.types_filter.items():
+			top_categories = []
+			for action_type in val:
+				if action_type in type_list:
+					top_categories.append(key)
+					break
+			for action_type in val:
+				if action_type in type_list:
+					type_list.remove(action_type)
+
+		merged_categories = top_categories + type_list
+		merged_categories.sort()
+		return merged_categories
+
+
+
+
 	def filter_labels(self):
 		filtered_labels =[]
 		for key, val in self.types_filter.items():
@@ -330,7 +348,7 @@ class data_formatter_action_basket(data_formatter):
 						if tree.cargo not in action_basket:
 							action_basket.append(tree.cargo)
 			if self.types_filter:
-				pass#do something to filter action_basket into new categories, no need to operate on dataframe as there is only one column
+				action_basket = self.collapse_action_types(action_basket)
 			merged_basket = self.mergeBasketItems(self.joinstring, action_basket)
 			self.insert_df_value(key, 'Action Basket', merged_basket)
 		
@@ -437,6 +455,7 @@ class data_formatter_action_stream(data_formatter):
 class var_formatter_action_density(data_formatter):
 	def __init__(self, std_files, types_avail):
 		super().__init__(std_files, types_avail)
+		self.datatype = 'float'
 		
 
 	def export_dataframe(self):
@@ -445,7 +464,7 @@ class var_formatter_action_density(data_formatter):
 
 	def populate_dataframe(self):
 		self.students_avail = self.sort_datalist(self.retrieve_col_list())
-		self.set_dataframes(self.students_avail, ['Action Density'])
+		self.set_dataframes(self.students_avail, ['Action Density'], self.datatype)
 		
 		ignored_actions = ['DailyEnergyGraph', 'EnergyAnnualAnalysis', 'PvAnnualAnalysis', 'GroupAnnualAnalysis', 'GroupDailyAnalysis', 'PvDailyAnalysis', 'SolarAnnualAnalysis', 'SolarDailyAnalysis']
 
@@ -471,8 +490,7 @@ class var_formatter_action_density(data_formatter):
 						#And should there be a check as to when the previous time point and the new one is greater
 						#than 30 minutes of inactivity>??
 			if action_count > 0 and time_count > 0:
-				action_density = (action_count/time_count)*100 #divided by some time measure
-				print(action_count/time_count)
+				action_density = (action_count/time_count)#divided by some time measure
 			self.insert_df_value(key, 'Action Density', round(action_density, 4))
 
 
